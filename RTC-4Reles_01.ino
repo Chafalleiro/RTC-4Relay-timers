@@ -873,10 +873,22 @@ if (myCommand.lastIndexOf("DisplayWeekdayOff") >= 0) // DisplayWeekdayOff [0]-al
 	Serial << F("\n*******************************************\n");		
 	foundCommand = 1;
 	}
-//SetHolyday 01/01/18 1
-if (myCommand.lastIndexOf("SetHolyday") >= 0) // SetHolyday [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
+//SetHolyday 0 01/01/18 1
+if (myCommand.lastIndexOf("SetHolyday") >= 0) // SetHolyday [0]-holyday index [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
 	{
+	while (command != NULL)
+		{
+			command = strtok (NULL, " :/");
+			argument[i] = atoi(command);
+			i++;
+		}
 	
+	
+	
+	eeAddress = 346;
+	EEPROM.put(eeAddress, holydays[i]);
+	Serial << F(" Holyday ") << argument[0] << F(" is now ") << holydays[i].hYear << F("/") << holydays[i].hMonth << F("/") << holydays[i].hDay << F(" yearly repeatable ") << holydays[i].hCyclic << F("\n");
+	}	
 	}
 //DisplayHolydays
 if (myCommand.lastIndexOf("DisplayHolydays") >= 0) // DisplayHolydays
