@@ -7,12 +7,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 RTC-4Relay timers v.01. Alfonso Abelenda Escudero 2018
 ******************************************************************************
- Pinouts
-	 ZS-042: SDA-A4(PC5),SCL-A5(PC4),SQW-pin 2 (PD2)
-	 This sketch demonstrates how to use the ZS-042 RTC and a 4 way relay module to swtih the relays in a timely programmed way
-	 using the serial port to set the alarm and timer parameters.
- Purpose
-	 There are ten alarms, two form the RTC (RTCAlarm) than can be scheduled in a concrete day or dayly manner. Eight are Arduino programmed alarms that occurs in a 24 hour cycle. Each of the latter are associated with a timer that can be one time triggered or repeated in cycles.
+ Pinouts:
+ 
+ 	ZS-042: SDA-A4(PC5),SCL-A5(PC4),SQW-pin 2 (PD2)
+	 
+Purpose:
+
+	This sketch demonstrates how to use the ZS-042 RTC and a 4 way relay module to swtih the relays in a timely programmed way using the serial port to set the alarm and timer parameters.
+ 	 There are ten alarms, two form the RTC (RTCAlarm) than can be scheduled in a concrete day or dayly manner. Eight are Arduino programmed alarms that occurs in a 24 hour cycle. Each of the latter are associated with a timer that can be one time triggered or repeated in cycles.
 
 TODO: routine to change EEPROM cell when they reach their writes lifespan, that can be around seven years.
 TODO use AT24C32 EEPROM to get advantage of its 1M cicles of rewriting. 32Kb 1M rewrites. Seven decades of use per register writing one every minute.
