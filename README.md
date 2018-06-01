@@ -14,7 +14,11 @@ RTC-4Relay timers v.01. Alfonso Abelenda Escudero 2018
 Purpose:
 
  This sketch demonstrates how to use the ZS-042 RTC and a 4 way relay module to swtih the relays in a timely programmed way using the serial port to set the alarm and timer parameters.
- There are ten alarms, two form the RTC (RTCAlarm) than can be scheduled in a concrete day or dayly manner. Eight are Arduino programmed alarms that occurs in a 24 hour cycle. Each of the latter are associated with a timer that can be one time triggered or repeated in cycles.
+ 
+Features:
+
+ Eight configurable dayly alarms, eight cycling timers to swith relays on and off. Schedules weekly day off for each alarm, scheduled yearly holydays that can be launched only one day if wanted.
+ Configurable via TYT console on arduino serial port, reset to alarms defaults, display of several status, and setting RTC time commands available.
 
 TODO: 
 
