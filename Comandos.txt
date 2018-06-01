@@ -1,0 +1,16 @@
+PrtTime
+ResetAllTheAlarmsNow
+Clean
+DisplayHolydays
+SetTime 2018/05/28 00:00:01
+SetOnTimer 1 00:01:02 1 2 - SetOnTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
+SetOffTimer 1 00:00:33 1 2 - SetOffTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
+SetAlarm 1 00:20:23 0 1 -SetAlarm [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-Random [5]-Timer
+ActTimer 1 1 - ActTimer 1 1 [0]-number [1]-boolean
+ActTimerOff 1 0 - ActTimerOff 1 1 [0]-number [1]-boolean
+ActAlarm 1 1 - ActAlarm [0]-number [1]-boolean
+ActRelay 1 1 - ActRelay [0]-number [1]-boolean
+DisplayAlarms 0 - DisplayAlarms [0]-alarm number (no argument displays all)
+SetWeekdayOff 0 L 1 - SetWeekdayOff [0]-alarm [1]-Weekoff day (L,M,X,J,V,S,D, or M,t,W,T,F,s,S)  [2]-working day 0,1
+DisplayWeekdayOff 0 - DisplayWeekdayOff [0]-alarm (no argument displays all)
+SetHolyday 01/01/18 1 - SetHolyday [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
