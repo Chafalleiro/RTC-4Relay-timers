@@ -25,8 +25,6 @@ TODO: LCD display routines.
 TODO: Make something useful with the RTC alarms.
 TODO: portable control GUI in Win, Mac and Linux.
 
-
-
 PrtTime
 ResetAllTheAlarmsNow
 Clean
