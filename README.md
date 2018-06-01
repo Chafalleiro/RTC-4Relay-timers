@@ -17,8 +17,8 @@ Purpose:
  
 Features:
 
- Eight configurable dayly alarms, eight cycling timers to swith relays on and off. Schedules weekly day off for each alarm, scheduled yearly holydays that can be launched only one day if wanted.
- Configurable via TYT console on arduino serial port, reset to alarms defaults, display of several status, and setting RTC time commands available.
+ Eight configurable dayly alarms, eight cycling timers to swith relays on and off. Scheduled weekly day off for each alarm, scheduled yearly holydays that can be launched only one day if wanted.
+ Configurable via TTY console on arduino serial port, reset to alarms defaults, display of several status, and setting RTC time commands available.
 
 TODO: 
 
