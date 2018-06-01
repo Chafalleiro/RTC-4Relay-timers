@@ -28,13 +28,9 @@ TODO: portable control GUI in Win, Mac and Linux.
 
 
 PrtTime
-
 ResetAllTheAlarmsNow
-
 Clean
-
 DisplayHolydays
-
 SetTime 2018/05/28 00:00:01
 SetOnTimer 1 00:01:02 1 2 - SetOnTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
 SetOffTimer 1 00:00:33 1 2 - SetOffTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
