@@ -25,7 +25,6 @@ TODO: LCD display routines.
 TODO: Make something useful with the RTC alarms.
 TODO: portable control GUI in Win, Mac and Linux.
 
-
 PrtTime
 ResetAllTheAlarmsNow
 Clean
@@ -42,3 +41,4 @@ DisplayAlarms 0 - DisplayAlarms [0]-alarm number (no argument displays all)
 SetWeekdayOff 0 L 1 - SetWeekdayOff [0]-alarm [1]-Weekoff day (L,M,X,J,V,S,D, or M,t,W,T,F,s,S)  [2]-working day 0,1
 DisplayWeekdayOff 0 - DisplayWeekdayOff [0]-alarm (no argument displays all)
 SetHolyday 0 01/01/18 1 -  SetHolyday [0]-holyday index [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
+
