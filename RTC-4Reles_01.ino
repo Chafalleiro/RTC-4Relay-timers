@@ -388,11 +388,12 @@ for (i=0;i<8;i++)
 			timeOffElapsed[i] = 0;	// reset the counter to 0 so the counting starts over...
 			if (myTimersOffCtd[i].myCountdown >= myTimersOff[i].myTime)
 				{
+				Serial << F(" Reached countdown...\n");
+				myTimersOff[i].myStatus = 0;
 				if (myTimersOn[i].myModifier == 1) //If Timer is repeatable
 					{
-				myTimersOn[i].myStatus = 1;
-				myTimersOff[i].myStatus = 0;
-				myTimersOnCtd[i].myCountdown = 0;//Put the test value in counter 4
+					myTimersOn[i].myStatus = 1;
+					myTimersOnCtd[i].myCountdown = 0;//Put the test value in counter 4
 					}
 				}
 			}	
@@ -418,16 +419,24 @@ for (i=0;i<30;i++) //Check for holyday.
 	{
 	EEPROM.get(eeAddress, holydays[i]);
 	eeAddress += 4;
-	tYear = holydays[i].hYear + 2000;
-	tm.Month = int(holydays[i].hDay);  tm.Day = int(holydays[i].hMonth); tm.Year = int(holydays[i].hYear) - 1970;
-	ht = makeTime(tm);	
+	tYear = (int)holydays[i].hYear + 2000;
+	tm.Day = (int)holydays[i].hDay;  tm.Month = (int)holydays[i].hMonth; tm.Year = tYear - 1970;
+	ht = makeTime(tm);
+//	Serial << F(" ")<< i << F(" holyday...\n");
 	if (holydays[i].hCyclic < 2 && ht == t)
 		{
+		if (sleepSW == 0)
+			{
+			printDateTime(ht);
+			Serial << F("\n*******************************************\n");
+			Serial << F("Today is an scheduled holyday, going to sleep...\n");
+			Serial << F("\n*******************************************\n");			
+			}
 		holyday = true;
 		if (holydays[i].hCyclic == 0) //One timer
 			{
 				holydays[i].hCyclic = 2;
-				EEPROM.put(eeAddress, holydays[i]);				
+				EEPROM.put(eeAddress, holydays[i]);	
 			}
 		}
 	}
@@ -441,10 +450,9 @@ for (i=0;i<8;i++) //Check for weekly dayOff.
 		{
 		if (month(t) == month(myAlarms[i].myTime) && day(t) == day(myAlarms[i].myTime) && year(t) == year(myAlarms[i].myTime))
 			{
-			Serial <<F("Alarm ")<< i << F(" has Day off today\n");
 			tm.Hour = int(hour(myAlarms[i].myTime)); tm.Minute = int(minute(myAlarms[i].myTime)); tm.Second = int(second(myAlarms[i].myTime));
 			myAlarms[i].myTime = makeTime(tm) + 86400;
-			Serial <<F("Alarm ")<< i << F(" has Day off today\n");
+			Serial <<F("Alarm ")<< i << F(" has Day off today, scheduling it to tomorrow\n");
 			eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
 			EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
 			}
@@ -457,10 +465,11 @@ void CheckWakeUp()
 {
 time_t t;
 byte i = 0;
-Serial << F("-----------=========== Awaking ===========-----------\n");
 //Check if it's a Holyday
-if (!CheckHolydays())
+boolean mHolyday = CheckHolydays();
+if (mHolyday == false)
 	{
+	Serial << F("-----------=========== Awaking ===========-----------\n");
 // "actions" can be a number representing a TimerOn to activate, 88 to Sleep or 99 to Awake the board, 77 for a day off, 66 for 48h off.
 	for (i=0;i<8;i++)
 		{
@@ -484,13 +493,12 @@ if (!CheckHolydays())
 				}
 			}
 		}
+	Serial << F("\n*******************************************\n");
 	}
-	else
-		{
-		Serial << F("Today is an scheduled holyday, going to sleep...\n");
-		sleepSW = 1;
-		}
-Serial << F("\n*******************************************\n");
+else
+	{
+	sleepSW = 1;
+	}
 }
 //******************************************************************************
 /* List of commands:
@@ -882,13 +890,14 @@ if (myCommand.lastIndexOf("SetHolyday") >= 0) // SetHolyday [0]-holyday index [0
 			argument[i] = atoi(command);
 			i++;
 		}
-	
-	
-	
+	holydays[argument[0]].hDay = (byte)argument[1];
+	holydays[argument[0]].hMonth = (byte)argument[2];
+	holydays[argument[0]].hYear = (byte)argument[3];
+	holydays[argument[0]].hCyclic = (byte)argument[4];
 	eeAddress = 346;
-	EEPROM.put(eeAddress, holydays[i]);
-	Serial << F(" Holyday ") << argument[0] << F(" is now ") << holydays[i].hYear << F("/") << holydays[i].hMonth << F("/") << holydays[i].hDay << F(" yearly repeatable ") << holydays[i].hCyclic << F("\n");
-	}	
+	EEPROM.put(eeAddress, holydays[argument[0]]);
+	Serial << F(" Holyday ") << argument[0] << F(" is now ") << holydays[argument[0]].hDay << F("/") << holydays[argument[0]].hMonth << F("/")  << holydays[argument[0]].hYear << F(" yearly repeatable ") << holydays[argument[0]].hCyclic << F("\n");
+	foundCommand = 1;
 	}
 //DisplayHolydays
 if (myCommand.lastIndexOf("DisplayHolydays") >= 0) // DisplayHolydays
@@ -982,7 +991,7 @@ for (i=0;i< 30; i++)
 
 	EEPROM.get(eeAddress, holydays[i]);
 	eeAddress += 4;
-	Serial << F(" Holyday ") << i << F(" is ") << holydays[i].hYear << F("/") << holydays[i].hMonth << F("/") << holydays[i].hDay << F(" yearly repeatable ") << holydays[i].hCyclic << F("\n");
+	Serial << F(" Holyday ") << i << F(" is ") << holydays[i].hYear << F("/") << holydays[i].hMonth << F("/") << holydays[i].hDay << F(" yearly repeatable ") << holydays[i].hCyclic << F(" (yy/mm/dd)\n");
 	}
 }
 //******************************************************************************
