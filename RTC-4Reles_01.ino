@@ -267,7 +267,7 @@ if (minuteTimeElapsed > minuteInterval) // Every minute we save the current time
 	EEPROM.put(467, t);
 	printDateTime(t);
 	minuteTimeElapsed = 0;
-	Serial << F("Time Saved\n");
+	Serial << F(" Time Saved\n");
 	}
 }
 
@@ -363,14 +363,14 @@ for (i=0;i<8;i++)
 			myTimersOnCtd[i].myCountdown++;
 			if (mVerbosity == 1)
 				{
-				Serial << F("Timer On ") << i << F(" on Relay ") << myTimersOn[i].myAction<< F(":") << RelayControl[myTimersOn[i].myAction] << F(" ");
+				Serial << F("Timer On ") << i << F(" on Relay ") << myTimersOn[i].myAction << F(":") << RelayControl[myTimersOn[i].myAction] << F(" ");
 				printTime(myTimersOnCtd[i].myCountdown);
 				Serial << F(" is active, checking its countdown...\n");
 				}
 			timeOnElapsed[i] = 0;	// reset the counter to 0 so the counting starts over...
 			if (myTimersOnCtd[i].myCountdown >= myTimersOn[i].myTime)
 				{
-				Serial << F(" Reached timer ") << i << F(" ON countdown...\n");
+				Serial << F(" Reached timer ") << i << F(" ON countdown on Relay ") << myTimersOn[i].myAction << F(" ...\n");
 				myTimersOn[i].myStatus = 0;
 				myTimersOff[i].myStatus = 1;
 				digitalWrite(RelayControl[myTimersOn[i].myAction],HIGH);// NO1 and COM1 Connected (LED off)
@@ -397,7 +397,7 @@ for (i=0;i<8;i++)
 			timeOffElapsed[i] = 0;	// reset the counter to 0 so the counting starts over...
 			if (myTimersOffCtd[i].myCountdown >= myTimersOff[i].myTime)
 				{
-				Serial << F(" Reached timer ") << i << F(" OFF countdown...\n");
+				Serial << F(" Reached timer ") << i << F(" OFF countdown on Relay ") << myTimersOff[i].myAction << F(" ...\n");;
 				myTimersOff[i].myStatus = 0;
 				if (myTimersOn[i].myModifier == 1) //If Timer is repeatable
 					{
