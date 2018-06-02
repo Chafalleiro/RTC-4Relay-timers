@@ -59,7 +59,8 @@ struct Holyday { //4 bytes
 	boolean hCyclic;
 };
 Holyday holydays[30] ={{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};//120 bytes, starts at 346
-
+byte mVerbosity = 0;
+	
 elapsedMillis timeElapsed; //declare global if you don't want it reset every time loop runs
 elapsedMillis ledTimeElapsed;
 elapsedMillis minuteTimeElapsed;
@@ -141,6 +142,8 @@ if (String(myLabel) == "Ch")	//	Byte 241 of the EEPROM must be "C", 242 "h"
 	GetTimersOff();
 	GetTimersWeekdayOffs();
 	GetHolydays();
+	EEPROM.get(471, mVerbosity);
+	Serial << F("Verbosity is  ") << mVerbosity << F("\n");
 	}
 else	//If not we initialize the memory with default values
 	{ //Total data is 356 butes
@@ -358,13 +361,16 @@ for (i=0;i<8;i++)
 		if (timeOnElapsed[i] > interval)
 			{	
 			myTimersOnCtd[i].myCountdown++;
-			Serial << F("Timer On ") << i << F(" on Relay ") << myTimersOn[i].myAction<< F(":") << RelayControl[myTimersOn[i].myAction] << F(" ");
-			printTime(myTimersOnCtd[i].myCountdown);
-			Serial << F(" is active, checking its countdown...\n");
+			if (mVerbosity == 1)
+				{
+				Serial << F("Timer On ") << i << F(" on Relay ") << myTimersOn[i].myAction<< F(":") << RelayControl[myTimersOn[i].myAction] << F(" ");
+				printTime(myTimersOnCtd[i].myCountdown);
+				Serial << F(" is active, checking its countdown...\n");
+				}
 			timeOnElapsed[i] = 0;	// reset the counter to 0 so the counting starts over...
 			if (myTimersOnCtd[i].myCountdown >= myTimersOn[i].myTime)
 				{
-				Serial << F(" Reached countdown...\n");
+				Serial << F(" Reached timer ") << i << F(" ON countdown...\n");
 				myTimersOn[i].myStatus = 0;
 				myTimersOff[i].myStatus = 1;
 				digitalWrite(RelayControl[myTimersOn[i].myAction],HIGH);// NO1 and COM1 Connected (LED off)
@@ -382,13 +388,16 @@ for (i=0;i<8;i++)
 		if (timeOffElapsed[i] > interval)
 			{
 			myTimersOffCtd[i].myCountdown++;
-			Serial << F("Timer Off ") << i << F(" on Relay ") << myTimersOn[i].myAction<< F(":") << RelayControl[myTimersOff[i].myAction] << F(" ");
-			printTime(myTimersOffCtd[i].myCountdown);
-			Serial << F(" is active, checking its countdown...\n");
+			if (mVerbosity == 1)
+				{
+				Serial << F("Timer Off ") << i << F(" on Relay ") << myTimersOn[i].myAction<< F(":") << RelayControl[myTimersOff[i].myAction] << F(" ");
+				printTime(myTimersOffCtd[i].myCountdown);
+				Serial << F(" is active, checking its countdown...\n");
+				}
 			timeOffElapsed[i] = 0;	// reset the counter to 0 so the counting starts over...
 			if (myTimersOffCtd[i].myCountdown >= myTimersOff[i].myTime)
 				{
-				Serial << F(" Reached countdown...\n");
+				Serial << F(" Reached timer ") << i << F(" OFF countdown...\n");
 				myTimersOff[i].myStatus = 0;
 				if (myTimersOn[i].myModifier == 1) //If Timer is repeatable
 					{
@@ -907,6 +916,24 @@ if (myCommand.lastIndexOf("DisplayHolydays") >= 0) // DisplayHolydays
 	Serial << F("\n*******************************************\n");	
 	foundCommand = 1;
 	}
+//Verbosity 1
+if (myCommand.lastIndexOf("Verbosity") >= 0) // Verbosity 1 [0]-boolean
+	{
+	while (command != NULL)
+		{
+			command = strtok (NULL, " :/");
+			argument[i] = atoi(command);
+			i++;
+		}
+	mVerbosity = (byte)argument[0];
+	EEPROM.put(471, mVerbosity);
+	delay(10);
+	Serial << F("\n*******************************************\n");
+	Serial << F(" Verbosity is set to ") << argument[0] << F("\n");
+	Serial << F("\n*******************************************\n");	
+	foundCommand = 1;
+	}
+	
 //No Command
 if (foundCommand == 0 && command)
 	{
@@ -1173,6 +1200,8 @@ for (i=0;i< 8; i++)
 	EEPROM.put(eeAddress, holydays[i]);
 	eeAddress += 4;
 	}
+
+	EEPROM.put(471, 1);
 
 	Serial << F(" EEPROM has been initialized\n");
 	GetAlarms();
