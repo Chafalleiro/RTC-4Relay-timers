@@ -49,3 +49,13 @@ TODO:
 	SetHolyday 0 01/01/18 1 -  SetHolyday [0]-holyday index [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
 	Verbosity 1 - Verbosity [0]-boolean 
 
+
+#File list
+	
+	Comandos prueba.txt - Contains a list of commands to test the circuit in the console
+	Comandos.txt - List of the available commands
+	RTC-4Reles_01.ino - Sorce code of the Sketch - Heavily comented
+	bin/RTC-4Reles_01.ino.eightanaloginputs.hex - flashable sketch for arduino nano (atmega328p)
+	bin/RTC-4Reles_01.ino.with_bootloader.eightanaloginputs.hex - flashable sketch for arduino nano (atmega328p) including the Arduino nano bottloader
+	schematics/RTC-4Reles_01.* Intrictions to solder a board for using the nano+RTC+4Rlay board.
+	schematics/Relay_zs-042.fzz Fritzing breadboard, schematic and PCB plans.
