@@ -144,7 +144,6 @@ if (String(myLabel) == "Ch")	//	Byte 241 of the EEPROM must be "C", 242 "h"
 	GetHolydays();
 	EEPROM.get(471, mVerbosity);
 	Serial << F("Verbosity is  ") << mVerbosity << F("\n");
-	
 	}
 else	//If not we initialize the memory with default values
 	{ //Total data is 356 butes
