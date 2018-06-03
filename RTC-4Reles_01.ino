@@ -439,7 +439,7 @@ for (i=0;i<30;i++) //Check for holyday.
 			}
 		}
 	}
-eeAddress = 0;	
+eeAddress = 0;
 tm.Month = int(month(t));  tm.Day = int(day(t)); tm.Year = int(year(t)) - 1970;
 ht = makeTime(tm);
 for (i=0;i<8;i++) //Check for weekly dayOff.
@@ -514,9 +514,9 @@ if (mHolyday == false)
 				EEPROM.put(472, mSleeptime);
 				// We add a day to the Alarm activating date, since they are scheluled in a daily based and we don't need it until tomorrow.
 				// Also we won't the same timer activated again. 84600s = 24h
-				//myAlarms[i].myTime = myAlarms[i].myTime + 86400;
-				//int eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
-				//EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
+				myAlarms[i].myTime = myAlarms[i].myTime + 86400;
+				int eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
+				EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
 				Serial << F("\n*******************************************\n");
 				}
 			}
