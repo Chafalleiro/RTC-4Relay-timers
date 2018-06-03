@@ -510,6 +510,8 @@ if (mHolyday == false)
 				t = now();
 				printDateTime(now());
 				sleepSW = 0;
+				mSleeptime = 0;
+				EEPROM.put(472, mSleeptime);
 				// We add a day to the Alarm activating date, since they are scheluled in a daily based and we don't need it until tomorrow.
 				// Also we won't the same timer activated again. 84600s = 24h
 				//myAlarms[i].myTime = myAlarms[i].myTime + 86400;
@@ -1273,6 +1275,7 @@ for (i=0;i< 8; i++)
 void SleepTimeNow()
 {
 byte j=0;
+mSleeptime = 1;
 Serial << F("Going to sleep...\n");
 EEPROM.put(472, mSleeptime);
 Serial << F("Setting Sleeptime bit...\n");			
