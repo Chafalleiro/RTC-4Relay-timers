@@ -48,7 +48,7 @@ TODO:
 	DisplayWeekdayOff 0 - DisplayWeekdayOff [0]-alarm (no argument displays all)
 	SetHolyday 0 01/01/18 1 -  SetHolyday [0]-holyday index [0]-day [1]-month [2]-year [3]-yearly (0 do once - 1 yearly - 2 deactivated)
 	Verbosity 1 - Verbosity [0]-boolean 
-
+	Sleep  1 - Sleep [0]-boolean 
 
 #File list
 	
