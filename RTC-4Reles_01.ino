@@ -140,7 +140,7 @@ if (String(myLabel) == "Ch")	//	Byte 241 of the EEPROM must be "C", 242 "h"
 	Serial << F("Alarms info is loaded\n");
 	//We read the alarms data and feed our work variables with the last saved data.
 	GetAlarms(1);
-	GetTimersOn();
+	GetTimersOn(1);
 	GetTimersOff();
 	GetTimersWeekdayOffs();
 	GetHolydays();
@@ -309,6 +309,7 @@ for (i=0;i<8;i++)
 		{
 		t = now();
 		t = myAlarms[i].myTime - t;
+		CheckDayOff();
 		if (t >= 0 && t < 18)	// 18 secs of margin to an alarm to raise if there was a little outgage.
 			{
 			Serial << F("t=") << t << F("...\n");
@@ -465,14 +466,15 @@ int eeAddress = 0;
 tmElements_t tm;
 time_t t, ht;
 byte i;
+t = now();
 tm.Month = int(month(t));  tm.Day = int(day(t)); tm.Year = int(year(t)) - 1970;
 tm.Hour = int(hour(t)); tm.Minute = int(minute(t)); tm.Second = int(second(t));
 ht = makeTime(tm);
 for (i=0;i<8;i++) //Check for weekly dayOff.
 	{
-	if ((weekDayOff[i] & (128 >> (weekday(t) - 1)))?true:false)//Has this alarm a dayOff?
+	if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
 		{
-		if (month(t) == month(myAlarms[i].myTime) && day(t) == day(myAlarms[i].myTime) && year(t) == year(myAlarms[i].myTime))
+		if (month(now()) == month(myAlarms[i].myTime) && day(now()) == day(myAlarms[i].myTime) && year(now()) == year(myAlarms[i].myTime))
 			{
 			tm.Hour = int(hour(myAlarms[i].myTime)); tm.Minute = int(minute(myAlarms[i].myTime)); tm.Second = int(second(myAlarms[i].myTime));
 			myAlarms[i].myTime = makeTime(tm) + 86400;
@@ -510,9 +512,9 @@ if (mHolyday == false)
 				sleepSW = 0;
 				// We add a day to the Alarm activating date, since they are scheluled in a daily based and we don't need it until tomorrow.
 				// Also we won't the same timer activated again. 84600s = 24h
-				myAlarms[i].myTime = myAlarms[i].myTime + 86400;
-				int eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
-				EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
+				//myAlarms[i].myTime = myAlarms[i].myTime + 86400;
+				//int eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
+				//EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
 				Serial << F("\n*******************************************\n");
 				}
 			}
@@ -652,7 +654,7 @@ if (myCommand.lastIndexOf("SetOnTimer") >= 0) // SetOnTimer [0]-number [1]-hours
 	Serial << F(" Timer On ") << argument[0] << F(" Set to ");
 	printTime(myTimersOn[argument[0]].myTime);
 	Serial << F(" Active=") << myTimersOn[argument[0]].myStatus << F(" Relay=") << myTimersOn[argument[0]].myAction << F(" Repeatable=") << myTimersOn[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
-	GetTimersOn();
+	GetTimersOn(0);
 	Serial << F("\n*******************************************\n");	
 	foundCommand = 1;
 	}
@@ -815,7 +817,7 @@ if (myCommand.lastIndexOf("DisplayAlarms") >= 0) // DisplayAlarms [0]-alarm numb
 		{ //Else we show all alarms.
 		GetAlarms(0);
 		Serial << F("           =-=-=-=-=-=-=-=-=               \n");
-		GetTimersOn();
+		GetTimersOn(0);
 		Serial << F("           =-=-=-=-=-=-=-=-=               \n");
 		GetTimersOff();
 		Serial << F("           =-=-=-=-=-=-=-=-=               \n");
@@ -994,15 +996,18 @@ for (i=0;i< 8; i++)
 	}
 }
 
-void GetTimersOn()
+void GetTimersOn(byte showInfo)
 {
 int eeAddress = 80;
 int i;
 for (i=0;i< 8; i++)
 	{
-	EEPROM.get(eeAddress, myTimersOn[i]);
-	eeAddress += 10;
-	delay(10);
+	if (showInfo == 1) //We populate the memory of the alarms.
+		{
+		EEPROM.get(eeAddress, myTimersOn[i]);
+		eeAddress += 10;
+		delay(10);
+		}
 	printDateTime(myTimersOn[i].myTime);
 	Serial << F(" Timer On ") << i << F(" Time. Active=") << myTimersOn[i].myStatus << F(" Relay=") << myTimersOn[i].myAction << F(" Repeatable=") << myTimersOn[i].myModifier << F("\n");
 	}
@@ -1100,7 +1105,6 @@ if (mSleeptime == 0)
 			}
 		}
 	i=7;
-
 	while (i>=0) //Fire the alarms since last wake up time if their timer is repeatable.
 		{
 		if (myTempStruct[myIndexes[i]].myTime < now())
@@ -1117,11 +1121,15 @@ if (mSleeptime == 0)
 				printDateTime(myAlarms[myIndexes[i]].myTime);
 				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myIndexes[i]].myModifier == 1)
 					{
-					myTimersOn[myIndexes[i]].myStatus = 1;
-					Serial << F(" Launching its timer\n");
-					myAlarms[myIndexes[i]].myTime = myAlarms[myIndexes[i]].myTime + 86400;
-					eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
-					EEPROM.put(eeAddress, myAlarms[myIndexes[i]]);	//Put the updated alarm info
+					if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
+						{
+						Serial << F(" But has a weekly DayOff today\n");
+						}
+					else
+						{
+						myTimersOn[myIndexes[i]].myStatus = 1;
+						Serial << F(" Launching its timer\n");
+						}
 					}
 				else
 					{
@@ -1252,7 +1260,7 @@ for (i=0;i< 8; i++)
 	EEPROM.put(472, 0);
 	Serial << F(" EEPROM has been initialized\n");
 	GetAlarms(1);
-	GetTimersOn();
+	GetTimersOn(1);
 	GetTimersOff();
 	GetTimersWeekdayOffs();
 	GetHolydays();
