@@ -1125,7 +1125,7 @@ if (mSleeptime == 0)
 				{
 				Serial << F("Found Alarm: ") << myIndexes[i] <<  F(" Active: ") << myAlarms[myIndexes[i]].myStatus << F(" ");
 				printDateTime(myAlarms[myIndexes[i]].myTime);
-				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myIndexes[i]].myModifier == 1)
+				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier == 1)
 					{
 					if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
 						{
@@ -1133,7 +1133,7 @@ if (mSleeptime == 0)
 						}
 					else
 						{
-						myTimersOn[myIndexes[i]].myStatus = 1;
+						myTimersOn[myAlarms[myIndexes[i]].myAction].myStatus = 1;
 						Serial << F(" Launching its timer\n");
 						}
 					}
