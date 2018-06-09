@@ -723,6 +723,33 @@ if (myCommand.lastIndexOf("SetAlarm") >= 0) // SetAlarm[0]-number [1]-hours:[2]-
 	Serial << F("\n*******************************************\n");	
 	foundCommand = 1;
 	}
+//SetAlDate 7 2018/06/09
+if (myCommand.lastIndexOf("SetAlDate") >= 0) // SetAlDate [0]-number [1]-Year/[2]-Month/[3]-Day
+	{
+	while (command != NULL)
+		{
+			command = strtok (NULL, " :/");
+			argument[i] = atoi(command);
+			i++;
+		}
+
+	t = now();
+	tm.Year = argument[1] - 1970; tm.Month = argument[2];  tm.Day = argument[3];
+	tm.Hour = hour(myAlarms[argument[0]].myTime); tm.Minute = minute(myAlarms[argument[0]].myTime); tm.Second = second(myAlarms[argument[0]].myTime);
+	myAlarms[argument[0]].myTime = makeTime(tm);
+
+	eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
+	eeAddress = eeAddress + 0;	//Add displacement
+	EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
+	delay(10);
+	Serial << F("\n*******************************************\n");	
+	Serial << F(" Alarm date ") << argument[0] << F(" Set to ");
+	printDateTime(myAlarms[argument[0]].myTime);
+	Serial << F(" Active=") << myAlarms[argument[0]].myStatus << F(" On Timer=") << myAlarms[argument[0]].myAction << F(" Random=") << myAlarms[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
+	GetAlarms(1);
+	Serial << F("\n*******************************************\n");	
+	foundCommand = 1;
+	}
 //ActTimer 1 1
 if (myCommand.lastIndexOf("ActTimer") >= 0) // ActTimer 1 1 [0]-number [1]-boolean
 	{
