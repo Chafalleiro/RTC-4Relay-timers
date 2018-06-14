@@ -36,7 +36,7 @@ TODO:
 	Clean
 	DisplayHolydays
 	SetTime 2018/05/28 00:00:01
-	SetOnTimer 1 00:01:02 1 2 - SetOnTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
+	SetOnTimer 1 00:01:02 1 2 - SetOnTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay (If repeatable == 1, repeats are unlimited, 0 is only one execution, more than 1 are the number of repeats specified)
 	SetOffTimer 1 00:00:33 1 2 - SetOffTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
 	SetAlarm 1 00:20:23 0 1 -SetAlarm [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-Random [5]-Timer
 	ActTimer 1 1 - ActTimer 1 1 [0]-number [1]-boolean
