@@ -35,6 +35,7 @@ struct StructAlarms { //10 bytes. Can be 7 bytes.
 	int myModifier;
 	int myAction;
 };
+int timeonRepeats[8];
 //These are the default values of the alarms
 StructAlarms myAlarms[8] ={{0, 1514764802,0 ,0 },{0, 1514764803,0 ,0 },{0, 1514764800,0 ,0 },{0, 1514764805,0 ,0 },{0, 1514764808,0 ,0 },{0, 1514764809,0 ,0 },{0, 1514764807,0 ,0 },{0, 1514764806,0 ,0 }}; //80 bytes, start 0
 StructAlarms myTimersOn[8] ={{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 },{0, 10,0 ,0 }}; //80 bytes, start 80
@@ -68,10 +69,12 @@ elapsedMillis minuteTimeElapsed;
 elapsedMillis timeOnElapsed[8];
 elapsedMillis timeOffElapsed[8];
 
+
 unsigned int ledInterval = 1000;
 unsigned int minuteInterval = 60000;
 
 byte RelayControl[8] = {7,6,5,4,7,6,5,4};
+
 boolean sleepSW = 0;
 
 byte ledStatus = 13;
@@ -310,7 +313,7 @@ for (i=0;i<8;i++)
 		t = now();
 		t = myAlarms[i].myTime - t;
 		CheckDayOff();
-		if (t >= 0 && t < 18)	// 18 secs of margin to an alarm to raise if there was a little outgage.
+		if (t >= 0 && t < 10)	// 18 secs of margin to an alarm to raise if there was a little outgage.
 			{
 			Serial << F("t=") << t << F("...\n");
 			Serial << F("Alarm ") << i << F(" raised...\n");
@@ -397,6 +400,18 @@ for (i=0;i<8;i++)
 					{
 					myTimersOn[i].myStatus = 1;
 					myTimersOnCtd[i].myCountdown = 0;//Put the test value in counter 4
+					}
+				else
+					{
+					if (myTimersOn[i].myModifier > 1 && timeonRepeats[i] > 1) //If repeats are limited
+						{
+						timeonRepeats[i]--;
+						Serial << F(" Reached timer ") << i << F(" OFF countdown on Relay ") << myTimersOff[i].myAction << F(" ");
+						printTime(myTimersOffCtd[i].myCountdown);
+						Serial << F("It has ")<< timeonRepeats[i] << F(" repeats left ...\n");
+						myTimersOn[i].myStatus = 1;
+						myTimersOnCtd[i].myCountdown = 0;//Put the test value in counter 4
+						}
 					}
 				}
 			}	
@@ -1152,7 +1167,7 @@ if (mSleeptime == 0)
 				{
 				Serial << F("Found Alarm: ") << myIndexes[i] <<  F(" Active: ") << myAlarms[myIndexes[i]].myStatus << F(" ");
 				printDateTime(myAlarms[myIndexes[i]].myTime);
-				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier == 1)
+				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier >= 1)
 					{
 					if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
 						{
@@ -1161,6 +1176,7 @@ if (mSleeptime == 0)
 					else
 						{
 						myTimersOn[myAlarms[myIndexes[i]].myAction].myStatus = 1;
+						timeonRepeats[myAlarms[myIndexes[i]].myAction] = myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier;
 						Serial << F(" Launching its timer\n");
 						}
 					}
