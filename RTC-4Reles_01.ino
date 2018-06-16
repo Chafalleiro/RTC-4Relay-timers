@@ -313,7 +313,7 @@ for (i=0;i<8;i++)
 		t = now();
 		t = myAlarms[i].myTime - t;
 		CheckDayOff();
-		if (t >= 0 && t < 10)	// 18 secs of margin to an alarm to raise if there was a little outgage.
+		if (t >= 0 && t < 10)	// 10 secs of margin to an alarm to raise if there was a little outgage.
 			{
 			Serial << F("t=") << t << F("...\n");
 			Serial << F("Alarm ") << i << F(" raised...\n");
@@ -321,6 +321,7 @@ for (i=0;i<8;i++)
 			// We add a day to the Alarm activating date, since they are scheluled in a daily based and we don't need it until tomorrow.
 			// Also we won't the same timer activated again. 84600s = 24h
 			myAlarms[i].myTime = myAlarms[i].myTime + 86400;
+			timeonRepeats[myAlarms[i].myAction] = myTimersOn[myAlarms[i].myAction].myModifier;
 			eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
 			EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
 			}
