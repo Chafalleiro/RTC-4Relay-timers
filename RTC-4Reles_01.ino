@@ -65,12 +65,15 @@ byte mSleeptime = 0;
 	
 elapsedMillis timeElapsed; //declare global if you don't want it reset every time loop runs
 elapsedMillis ledTimeElapsed;
+elapsedMillis guiTimeElapsed;
 elapsedMillis minuteTimeElapsed;
 elapsedMillis timeOnElapsed[8];
 elapsedMillis timeOffElapsed[8];
 
+byte guimode = 0;
 
 unsigned int ledInterval = 1000;
+unsigned int guiInterval = 750;
 unsigned int minuteInterval = 60000;
 
 byte RelayControl[8] = {7,6,5,4,7,6,5,4};
@@ -268,6 +271,12 @@ else
 	CheckWakeUp();
 	}
 WaitForCommands();
+if (guimode == 1 && guiTimeElapsed > guiInterval) // Every minute we save the current time We can do this for 7 years.
+	{
+	guiTimeElapsed = 0;
+	Serial  << "GUIRTC " << year(now()) << F(";") << ((month(now())<10) ? "0" : "") << month(now()) << F(";") << ((day(now())<10) ? "0" : "") << day(now()) << F(";") << ((hour(now())<10) ? "0" : "") << hour(now()) << F(";") << ((minute(now())<10) ? "0" : "") << minute(now()) << F(";")  << ((second(now())<10) ? "0" : "") << second(now()) << F("\n");
+	}
+
 if (minuteTimeElapsed > minuteInterval) // Every minute we save the current time We can do this for 7 years.
 	{
 	t = now();
@@ -603,13 +612,13 @@ tmElements_t tm;
 boolean foundCommand = 0;
 //Check the serial port for input values
 // Calculate based on max input size expected for one command
-#define INPUT_SIZE 30
+#define INPUT_SIZE 62
 char input[INPUT_SIZE + 1];
 char* command;	
-int argument[7];
+int argument[19];
 //char* mweekday = {" MtWTFsS"};
 char* mweekday = {"DLMXJVS "};
-
+//str = Serial.readStringUntil('\n');
 // Add the final 0 to end the C string
 byte size = Serial.readBytes(input, INPUT_SIZE);
 input[size] = 0;
@@ -619,10 +628,31 @@ String weekly = "DLMXJVS ";
 
 // Get next command from Serial (add 1 for final 0)
 // Read each command pair 
-command = strtok (input," :/");
+command = strtok (input," ;:/");
 myCommand = command;
 myCommand.trim();
 
+//GUIMODE
+if (myCommand.lastIndexOf("GUIMODE") >= 0) // GUIMODE [0]-boolean
+	{
+	while (command != NULL)
+		{
+			command = strtok (NULL, " :/");
+			argument[i] = atoi(command);
+			i++;
+		}
+	if (argument[0] == 1)
+		{
+		Serial << F("GUI mode active \n");
+		guimode = 1;
+		}
+	else
+		{
+		Serial << F("GUI mode inactive\n");
+		guimode = 0;
+		}	
+	foundCommand = 1;	
+	}
 //PrtTime
 if (myCommand.lastIndexOf("PrtTime") >= 0) // SetOnTimer [0]-number [1]-hours:[2]-minutes:[3]-seconds [4]-repeatable [5]-relay
 	{
@@ -638,12 +668,11 @@ if (myCommand.lastIndexOf("SetTime") >= 0) // SetTime 2018/05/28 00:00:01
 		{
 			command = strtok (NULL, " :/");
 			argument[i] = atoi(command);
-			Serial << argument[i] << F(" - ") << i << F("\n");
 			i++;
 		}
 	
 	tm.Day = argument[2]; tm.Month = argument[1]; tm.Year = argument[0] - 1970; //Timer date is 01/01/1970
-	tm.Hour = argument[3]; tm.Minute = argument[4]; tm.Second = argument[5];
+	tm.Hour = argument[3]; tm.Minute = argument[4]; tm.Second = argument[5] + 1;
 	t = makeTime(tm);
 	RTC.set(t);        // use the time_t value to ensure correct mweekday is set
 	setTime(t);
@@ -798,7 +827,7 @@ if (myCommand.lastIndexOf("ActTimerOff") >= 0) // ActTimerOff 1 1 [0]-number [1]
 		}
 	myTimersOff[argument[0]].myStatus = argument[1];
 	eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
-	eeAddress = eeAddress + 80;	//Add displacement
+	eeAddress = eeAddress + 160;	//Add displacement
 	EEPROM.put(eeAddress, myTimersOff[argument[0]]);	//Put the updated alarm info
 	delay(10);
 	Serial << F("\n*******************************************\n");	
@@ -873,6 +902,38 @@ if (myCommand.lastIndexOf("DisplayAlarms") >= 0) // DisplayAlarms [0]-alarm numb
 		GetTimersWeekdayOffs();
 		}
 	Serial << F("\n*******************************************\n");
+	if (guimode == 1)
+		{
+		for (i=0;i< 8; i++)
+			{
+			//We show the actual status of the alarms variables.
+			Serial  << F("GUIALM ") << i << F("-"); //Index
+			Serial << year(myAlarms[i].myTime) << F(";"); //alarm date
+			Serial << ((month(myAlarms[i].myTime)<10) ? "0" : "") << month(myAlarms[i].myTime) << F(";");
+			Serial << ((day(myAlarms[i].myTime)<10) ? "0" : "") << day(myAlarms[i].myTime) << F(";");
+			Serial << ((hour(myAlarms[i].myTime)<10) ? "0" : "") << hour(myAlarms[i].myTime) << F(";");
+			Serial << ((minute(myAlarms[i].myTime)<10) ? "0" : "") << minute(myAlarms[i].myTime) << F(";");
+			Serial << ((second(myAlarms[i].myTime)<10) ? "0" : "") << second(myAlarms[i].myTime) << F("-");
+			Serial << myAlarms[i].myStatus << F(";") << myAlarms[i].myAction << F(";") << myAlarms[i].myModifier << F("-"); //Alarm data, active, timer, random
+
+			Serial << year(myTimersOn[myAlarms[i].myAction].myTime) << F(";"); //Timer ON date
+			Serial << ((month(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << month(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((day(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << day(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((hour(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << hour(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((minute(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << minute(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((second(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << second(myTimersOn[myAlarms[i].myAction].myTime) << F("-");
+			Serial << myTimersOn[myAlarms[i].myAction].myStatus << F(";") << myTimersOn[myAlarms[i].myAction].myAction << F(";") << myTimersOn[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
+
+			Serial << year(myTimersOff[myAlarms[i].myAction].myTime) << F(";"); //Timer OFF date
+			Serial << ((month(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << month(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((day(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << day(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((hour(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << hour(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((minute(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << minute(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
+			Serial << ((second(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << second(myTimersOff[myAlarms[i].myAction].myTime) << F("-");
+			Serial << myTimersOff[myAlarms[i].myAction].myStatus << F(";") << myTimersOff[myAlarms[i].myAction].myAction << F(";") << myTimersOff[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
+			Serial << weekDayOff[i] << F("-\n");
+			}
+		}
 	foundCommand = 1;
 	}
 //ResetAllTheAlarmsNow
@@ -1015,6 +1076,72 @@ if (myCommand.lastIndexOf("Sleep") >= 0) // Sleep 1 [0]-boolean
 	if(mSleeptime == 1){Serial << F("Feeling Sleepy, zzz.... \n");SleepTimeNow();}
 	else{Serial << F("Waking up... \n");sleepSW = 0;CheckWakeUp();}
 	Serial << F("\n*******************************************\n");	
+	foundCommand = 1;
+	}
+//SetData n aaaa;mm;dd;hh;mm;ss;hh;mm;ss;hh;mm;ss;n;n;nn;n;aaaa;mm;dd;hh;mm;ss;hh;mm;ss;hh;mm;ss;n;n;nn;nnn
+//SetData 7 2018;12;31;00;00;17;00;00;17;00;00;17;1;7;7;6;208
+if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void RTC4RlaysFBDialog::btnSetAlarms( wxCommandEvent& event )" function
+	{
+	Serial << F("\n*******************************************\n");		
+	Serial << command << F("\n");
+	while (command != NULL)
+		{
+			command = strtok (NULL, " ;");
+			argument[i] = atoi(command);
+			i++;
+		}
+		Serial << F("argument[13] ") << argument[13] << F("\n");
+		tm.Year = argument[1] - 1970; tm.Month = argument[2];  tm.Day = argument[3];
+		tm.Hour = argument[4]; tm.Minute = argument[5]; tm.Second = argument[6];
+		myAlarms[argument[0]].myTime = makeTime(tm);
+		tm.Hour = argument[7]; tm.Minute = argument[8]; tm.Second = argument[9];
+		myTimersOn[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
+		tm.Hour = argument[10]; tm.Minute = argument[11]; tm.Second = argument[12];
+		myTimersOff[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
+		myAlarms[argument[0]].myStatus = argument[13];
+		myAlarms[argument[0]].myAction = argument[14];
+		myTimersOn[myAlarms[argument[0]].myAction].myModifier = argument[15];
+		myTimersOn[myAlarms[argument[0]].myAction].myAction = argument[16];
+		weekDayOff[argument[0]] = argument[17];
+
+		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
+		EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
+		delay(10);
+		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer on info
+		eeAddress = eeAddress + 80;	//Add displacement
+		EEPROM.put(eeAddress, myTimersOn[myAlarms[argument[0]].myAction]);	//Put the updated timer on info
+		delay(10);
+		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer off info
+		eeAddress = eeAddress + 160;	//Add displacement
+		EEPROM.put(eeAddress, myTimersOff[myAlarms[argument[0]].myAction]);	//Put the updated timer off info
+		delay(10);
+		eeAddress = argument[0] + 338;
+		EEPROM.put(eeAddress, weekDayOff[argument[0]]);
+		delay(10);
+
+		Serial << F("Data for alarm ") << argument[0] << F(" wrote\n");
+		Serial << F("\n*******************************************\n");		
+		foundCommand = 1;
+	}
+
+//DisplayGUIInfos
+if (myCommand.lastIndexOf("DisplayGUIInfos") >= 0) // DisplayGUIInfos 0  - DisplayGUIInfos [0] - int
+	{
+	while (command != NULL)
+		{
+			command = strtok (NULL, " :/");
+			argument[i] = atoi(command);
+			i++;
+		}
+	switch (argument[0])
+		{
+		case 0: //Return RTC time and date
+			tm.Month = int(month(now()));  tm.Day = int(day(now())); tm.Year = int(year(now())) - 1970;
+			tm.Hour = int(hour(now())); tm.Minute = int(minute(now())); tm.Second = int(second(now()));
+			
+			Serial  << "GUIRTC;" << year(now()) << F(";") << ((month(now())<10) ? "0" : "") << month(now()) << F(";") << ((day(now())<10) ? "0" : "") << day(now()) << F(";") << ((hour(now())<10) ? "0" : "") << hour(now()) << F(";") << ((minute(now())<10) ? "0" : "") << minute(now()) << F(";")  << ((second(now())<10) ? "0" : "") << second(now()) << F("\n");
+			break;
+		}
 	foundCommand = 1;
 	}
 	
