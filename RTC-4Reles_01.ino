@@ -1090,7 +1090,6 @@ if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void
 			argument[i] = atoi(command);
 			i++;
 		}
-		Serial << F("argument[13] ") << argument[13] << F("\n");
 		tm.Year = argument[1] - 1970; tm.Month = argument[2];  tm.Day = argument[3];
 		tm.Hour = argument[4]; tm.Minute = argument[5]; tm.Second = argument[6];
 		myAlarms[argument[0]].myTime = makeTime(tm);
