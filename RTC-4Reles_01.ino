@@ -175,70 +175,6 @@ for (i=0;i<8;i++)
 		digitalWrite(RelayControl[i],HIGH);
 		delay(250);
 	}
-//Uncomment next block to test alarms without entering commands
-/*
-myAlarms[1].myTime = now() + 185; //Alarm time is now
-myAlarms[1].myStatus = 1;	//Alarm is active
-myAlarms[1].myModifier = 0;	//Random is off
-myAlarms[1].myAction = 99;	//Waking up
-
-printDateTime(myAlarms[1].myTime);
-Serial << " Alarm " << i << " Time. Active=" << myAlarms[1].myStatus << "\n";
-
-
-myAlarms[2].myTime = now() + 122; //Alarm time is now
-myAlarms[2].myStatus = 1;	//Alarm is active
-myAlarms[2].myModifier = 0;	//Random is off
-myAlarms[2].myAction = 88;	//Going to sleep
-
-printDateTime(myAlarms[2].myTime);
-Serial << " Alarm " << i << " Time. Active=" << myAlarms[2].myStatus << "\n";
-
-
-myAlarms[3].myTime = now();
-myAlarms[3].myStatus = 1;	//Alarm is active
-myAlarms[3].myTime = myAlarms[3].myTime - 86400; //Almost a day
-myAlarms[3].myAction = 2;	//TimerOn 3 is to be activated
-
-tm.Hour = 0; tm.Minute = 0; tm.Second = 30; //Timer is 1m 10s on (70 secs)
-tm.Day = 1; tm.Month = 1; tm.Year = 0; //Timer date is 01/01/1970
-myTimersOn[3].myTime = makeTime(tm);//Put the test value in timerOn 4
-myTimersOn[3].myModifier = 1;	// Make timer repeatable
-myTimersOn[3].myAction = 3;//Use relay 3
-
-myTimersOnCtd[3].myCountdown = myTimersOn[3].myTime - myTimersOn[3].myTime;//Put the test value in counter 4
-tm.Hour = 0; tm.Minute = 0; tm.Second = 10; //Timer Off is 10s
-myTimersOff[3].myTime = makeTime(tm);//Put the test value in timerOn 4
-myTimersOffCtd[3].myCountdown = myTimersOff[3].myTime - myTimersOff[3].myTime;	//Put the test value in counter 4	
-myTimersOff[3].myAction = 3;//Use relay 3
-
-myAlarms[4].myTime = now(); //Alarm time is now
-myAlarms[4].myStatus = 1;	//Alarm is active
-myAlarms[4].myModifier = 0;	//Random is off
-myAlarms[4].myAction = 4;	//TimerOn 4 is to be activated
-tm.Hour = 0; tm.Minute = 0; tm.Second = 30; //Timer is 1m 10s on (70 secs)
-tm.Day = 1; tm.Month = 1; tm.Year = 0; //Timer date is 01/01/1970
-
-myTimersOn[4].myTime = makeTime(tm);//Put the test value in timerOn 4
-myTimersOn[4].myModifier = 1;	// Make timer repeatable
-myTimersOnCtd[4].myCountdown = myTimersOn[4].myTime - myTimersOn[4].myTime;//Put the test value in counter 4
-tm.Hour = 0; tm.Minute = 0; tm.Second = 10; //Timer Off is 10s
-myTimersOff[4].myTime = makeTime(tm);//Put the test value in timerOn 4	
-myTimersOffCtd[4].myCountdown = myTimersOff[4].myTime - myTimersOff[4].myTime;	//Put the test value in counter 4	
-	
-Serial << "\n";
-printTime(myTimersOn[4].myTime);
-Serial << " Timer On 4 Time.\n";
-Serial << "\n";
-printTime(myTimersOff[4].myTime);
-Serial << " Timer Off 4 Time.\n";
-Serial << "\n";
-printTime(myTimersOnCtd[4].myCountdown);
-Serial << " Countdown On 4 Time.\n";
-Serial << "\n";
-printTime(myTimersOffCtd[4].myCountdown);
-Serial << " Countdown Off 4 Time.\n";
-*/	
 //Recover alarms
 if(outgage == 1)
 	{
@@ -418,7 +354,7 @@ for (i=0;i<8;i++)
 						timeonRepeats[i]--;
 						Serial << F(" Reached timer ") << i << F(" OFF countdown on Relay ") << myTimersOff[i].myAction << F(" ");
 						printTime(myTimersOffCtd[i].myCountdown);
-						Serial << F("It has ")<< timeonRepeats[i] << F(" repeats left ...\n");
+						Serial << F(" It has ")<< timeonRepeats[i] << F(" repeats left ...\n");
 						myTimersOn[i].myStatus = 1;
 						myTimersOnCtd[i].myCountdown = 0;//Put the test value in counter 4
 						}
@@ -568,9 +504,9 @@ else
  "minute" is a number between 0 and 59
  "second" is a number between 0 and 59
  "randomeventswitch" is a boolean, can be true, false, 0 or 1
- "repeatable" is a boolean, can be true, false, 0 or 1
+ "repeatable" is an int
  "relay" a number representing one of the four relays controlled by the relay board. Between 0 and 3.
- "actions" can be a number representing a TimerOn to activate, 88 to Sleep or 99 to Awake the board, 77 for a dy off, 66 for 48h off.
+ "actions" can be a number representing a TimerOn to activate, 88 to Sleep or 99 to Awake the board.
 ******************************************************************************
  Use SetTime to set the RTC time and date
 
@@ -1083,7 +1019,6 @@ if (myCommand.lastIndexOf("Sleep") >= 0) // Sleep 1 [0]-boolean
 if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void RTC4RlaysFBDialog::btnSetAlarms( wxCommandEvent& event )" function
 	{
 	Serial << F("\n*******************************************\n");		
-	Serial << command << F("\n");
 	while (command != NULL)
 		{
 			command = strtok (NULL, " ;");
@@ -1093,31 +1028,33 @@ if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void
 		tm.Year = argument[1] - 1970; tm.Month = argument[2];  tm.Day = argument[3];
 		tm.Hour = argument[4]; tm.Minute = argument[5]; tm.Second = argument[6];
 		myAlarms[argument[0]].myTime = makeTime(tm);
-		tm.Hour = argument[7]; tm.Minute = argument[8]; tm.Second = argument[9];
-		myTimersOn[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
-		tm.Hour = argument[10]; tm.Minute = argument[11]; tm.Second = argument[12];
-		myTimersOff[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
 		myAlarms[argument[0]].myStatus = argument[13];
 		myAlarms[argument[0]].myAction = argument[14];
-		myTimersOn[myAlarms[argument[0]].myAction].myModifier = argument[15];
-		myTimersOn[myAlarms[argument[0]].myAction].myAction = argument[16];
-		weekDayOff[argument[0]] = argument[17];
-
 		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
 		EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
-		delay(10);
-		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer on info
-		eeAddress = eeAddress + 80;	//Add displacement
-		EEPROM.put(eeAddress, myTimersOn[myAlarms[argument[0]].myAction]);	//Put the updated timer on info
-		delay(10);
-		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer off info
-		eeAddress = eeAddress + 160;	//Add displacement
-		EEPROM.put(eeAddress, myTimersOff[myAlarms[argument[0]].myAction]);	//Put the updated timer off info
-		delay(10);
+		delay(10);	
+		if(argument[14] < 88)
+			{
+			tm.Day = 1; tm.Month = 1; tm.Year = 0; //Timer date is 01/01/1970
+			tm.Hour = argument[7]; tm.Minute = argument[8]; tm.Second = argument[9];
+			myTimersOn[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
+			tm.Hour = argument[10]; tm.Minute = argument[11]; tm.Second = argument[12];
+			myTimersOff[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
+			myTimersOn[myAlarms[argument[0]].myAction].myModifier = argument[15];
+			myTimersOn[myAlarms[argument[0]].myAction].myAction = argument[16];
+			eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer on info
+			eeAddress = eeAddress + 80;	//Add displacement
+			EEPROM.put(eeAddress, myTimersOn[myAlarms[argument[0]].myAction]);	//Put the updated timer on info
+			delay(10);
+			eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer off info
+			eeAddress = eeAddress + 160;	//Add displacement
+			EEPROM.put(eeAddress, myTimersOff[myAlarms[argument[0]].myAction]);	//Put the updated timer off info
+			delay(10);
+			}
+		weekDayOff[argument[0]] = argument[17];
 		eeAddress = argument[0] + 338;
 		EEPROM.put(eeAddress, weekDayOff[argument[0]]);
 		delay(10);
-
 		Serial << F("Data for alarm ") << argument[0] << F(" wrote\n");
 		Serial << F("\n*******************************************\n");		
 		foundCommand = 1;
@@ -1241,8 +1178,8 @@ for (i=0;i< 30; i++)
 //******************************************************************************
 void RecoverActions()
 {
-time_t t, lastTimeRecorded,alarmValues[8];
-tmElements_t tm;
+time_t t, lastTimeRecorded, alarmValues[8];
+tmElements_t tm, tm_now, tm_alarm;
 int i=0;
 int j=0;
 int myIndexes[8] = {0,1,2,3,4,5,6,7};
