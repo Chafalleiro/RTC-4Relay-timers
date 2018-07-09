@@ -93,7 +93,6 @@ byte i = 0;
 int eeAddress = 0;
 boolean outgage = 0;
 time_t t;
-tmElements_t tm;
 
 pinMode(ledStatus, OUTPUT);
 
@@ -188,8 +187,7 @@ if(outgage == 1)
 //******************************************************************************
 void loop() {
 time_t t;
-//Uncomment next line to test relays connections
-// Rrithym();
+
 //******************************************************************************
 //If we are in active time check if any alarm is raised.
 if(sleepSW == 0)
@@ -203,14 +201,18 @@ if(sleepSW == 0)
 		}
 	}
 else
+{
+	CheckWakeUp();	
+	if (guiTimeElapsed > guiInterval) // Every minute we save the current time We can do this for 7 years.	
 	{
-	CheckWakeUp();
+	Serial  << F("Sleeping");
 	}
+}
 WaitForCommands();
 if (guimode == 1 && guiTimeElapsed > guiInterval) // Every minute we save the current time We can do this for 7 years.
 	{
 	guiTimeElapsed = 0;
-	Serial  << "GUIRTC " << year(now()) << F(";") << ((month(now())<10) ? "0" : "") << month(now()) << F(";") << ((day(now())<10) ? "0" : "") << day(now()) << F(";") << ((hour(now())<10) ? "0" : "") << hour(now()) << F(";") << ((minute(now())<10) ? "0" : "") << minute(now()) << F(";")  << ((second(now())<10) ? "0" : "") << second(now()) << F("\n");
+	Serial  << F("GUIRTC ") << year(now()) << F(";") << ((month(now())<10) ? "0" : "") << month(now()) << F(";") << ((day(now())<10) ? "0" : "") << day(now()) << F(";") << ((hour(now())<10) ? "0" : "") << hour(now()) << F(";") << ((minute(now())<10) ? "0" : "") << minute(now()) << F(";")  << ((second(now())<10) ? "0" : "") << second(now()) << F("\n");
 	}
 
 if (minuteTimeElapsed > minuteInterval) // Every minute we save the current time We can do this for 7 years.
@@ -247,7 +249,6 @@ void CheckTimers()
 {
 time_t t;
 byte i = 0;
-byte j = 0;
 int eeAddress = 0;
 unsigned int interval = 1000;	// 1 second elapsed time
 
@@ -288,6 +289,8 @@ for (i=0;i<8;i++)
 				SleepTimeNow();
 				Serial << F("\n*******************************************\n");
 				}
+			else
+				{CheckWakeUp();}
 			}
 		}
 	}	
@@ -374,7 +377,7 @@ tmElements_t tm;
 int tYear;
 int eeAddress = 346;
 //char* mweekday = {" MtWTFsS"};
-char* mweekday = {"DLMXJVS "};
+//char* mweekday = {"DLMXJVS "};
 String weekly = "DLMXJVS ";
 
 t = now();
@@ -888,15 +891,6 @@ if (myCommand.lastIndexOf("ResetAllTheAlarmsNow") >= 0) // ResetAllTheAlarmsNow
 	Serial << F("\n*******************************************\n");
 	foundCommand = 1;
 	}
-//Clear
-if (myCommand.lastIndexOf("Clean")>=0) // Clean
-	{
-	Serial.write(27);       // ESC command
-	Serial.print("[2J");    // clear screen command
-	Serial.write(27);
-	Serial.print("[H");     // cursor to home command	
-	foundCommand = 1;
-	}
 //SetWeekdayOff 0 L 1
 if (myCommand.lastIndexOf("SetWeekdayOff") >= 0) // SetWeekdayOff [0]-alarm [1]-Weekoff day (L,M,X,J,V,S,D, or M,t,W,T,F,s,S)  [2]-working day 0,1
 	{
@@ -933,23 +927,6 @@ if (myCommand.lastIndexOf("SetWeekdayOff") >= 0) // SetWeekdayOff [0]-alarm [1]-
 		j++;
 		}
 	Serial << F("\n*******************************************\n");
-	foundCommand = 1;
-	}
-//DisplayWeekdayOff 0
-if (myCommand.lastIndexOf("DisplayWeekdayOff") >= 0) // DisplayWeekdayOff [0]-alarm
-	{
-	Serial << F("\n*******************************************\n");
-	command = strtok (NULL, " :/");
-	if (isDigit(command[0]))
-		{
-		argument[0] = atoi(command);	
-		GetTimersWeekdayOff(argument[0]);
-		}
-	else
-		{ //Else we show all alarms.
-		GetTimersWeekdayOffs();
-		}
-	Serial << F("\n*******************************************\n");		
 	foundCommand = 1;
 	}
 //SetHolyday 0 01/01/18 1
@@ -1033,24 +1010,30 @@ if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void
 		eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
 		EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
 		delay(10);	
+		Serial << F("Timer ") << argument[14] << F(" wrote\n");
 		if(argument[14] < 88)
 			{
 			tm.Day = 1; tm.Month = 1; tm.Year = 0; //Timer date is 01/01/1970
 			tm.Hour = argument[7]; tm.Minute = argument[8]; tm.Second = argument[9];
 			myTimersOn[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
 			tm.Hour = argument[10]; tm.Minute = argument[11]; tm.Second = argument[12];
-			myTimersOff[myAlarms[argument[0]].myAction].myTime = makeTime(tm);
-			myTimersOn[myAlarms[argument[0]].myAction].myModifier = argument[15];
-			myTimersOn[myAlarms[argument[0]].myAction].myAction = argument[16];
-			eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer on info
-			eeAddress = eeAddress + 80;	//Add displacement
+			myTimersOff[argument[14]].myTime = makeTime(tm);
+			myTimersOn[argument[14]].myModifier = argument[15];
+			myTimersOn[argument[14]].myAction = argument[16];
+			myTimersOff[argument[14]].myModifier = 0;
+			myTimersOff[argument[14]].myAction = argument[16];
+			Serial << F("has action ") << myTimersOn[argument[14]].myAction << F(" and repeats ") << myTimersOn[argument[14]].myModifier;
+			eeAddress = argument[14] * 10;//Calculate the EEPROM addres of the timer on info
+			eeAddress = eeAddress + 80;	//Add start of the block
 			EEPROM.put(eeAddress, myTimersOn[myAlarms[argument[0]].myAction]);	//Put the updated timer on info
-			delay(10);
-			eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the timer off info
+			delay(10);			
+
+			eeAddress = argument[14] * 10;//Calculate the EEPROM addres of the timer off info
 			eeAddress = eeAddress + 160;	//Add displacement
 			EEPROM.put(eeAddress, myTimersOff[myAlarms[argument[0]].myAction]);	//Put the updated timer off info
 			delay(10);
 			}
+		Serial << F(" wrote\n");		
 		weekDayOff[argument[0]] = argument[17];
 		eeAddress = argument[0] + 338;
 		EEPROM.put(eeAddress, weekDayOff[argument[0]]);
@@ -1179,18 +1162,15 @@ for (i=0;i< 30; i++)
 void RecoverActions()
 {
 time_t t, lastTimeRecorded, alarmValues[8];
-tmElements_t tm, tm_now, tm_alarm;
+tmElements_t tm, tm_alarm;
 int i=0;
 int j=0;
 int myIndexes[8] = {0,1,2,3,4,5,6,7};
 EEPROM.get(472, mSleeptime);
-if (mSleeptime == 0)
-	{
-	sleepSW = 0;
 	t = now();	//Prepare a date to inject temporary structure
 	tm.Month = int(month(t));  tm.Day = int(day(t)); tm.Year = int(year(t)) - 1970;
 	t = makeTime(tm);
-	int eeAddress = 0;
+//	int eeAddress = 0;
 	EEPROM.get(467, lastTimeRecorded);
 	Serial << F("Last time recorded ");
 	printDateTime(lastTimeRecorded);
@@ -1232,6 +1212,9 @@ if (mSleeptime == 0)
 				Serial << F("Found Alarm: ") << myIndexes[i] <<  F(" Active: ") << myAlarms[myIndexes[i]].myStatus << F(" ");
 				printDateTime(myAlarms[myIndexes[i]].myTime);
 				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier >= 1)
+//myAlarms[i].myTime
+//tm.Month = int(now());  tm.Day = int(now()); tm.Year = int(now());					
+//tm.Hour = int(hour(now())); tm.Minute = int(minute(now())); tm.Second = int(second(now()));					
 					{
 					if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
 						{
@@ -1256,6 +1239,9 @@ if (mSleeptime == 0)
 			i--;
 			}
 		}
+if (mSleeptime == 0)
+	{
+	sleepSW = 0;
 	}
 else
 	{
@@ -1276,33 +1262,6 @@ void sortDates(time_t a[], int size) { //Bubble sort algo http://hwhacks.com/201
     }
 }
 //******************************************************************************
-void Rrithym()
-{
-	digitalWrite(RelayControl[0],LOW);// NO1 and COM1 Connected (LED on) 
-	Serial << F(" RelayControl[0]") << RelayControl[0] << F(" On\n");	
-	delay(1000);
-	digitalWrite(RelayControl[0],HIGH);// NO1 and COM1 disconnected (LED off)
-	Serial << F(" RelayControl[0]") << RelayControl[0] << F(" Off\n");
-
-	digitalWrite(RelayControl[1],LOW);// NO1 and COM1 Connected (LED on) 
-	Serial << F(" RelayControl[1]") << RelayControl[1] << F(" On\n");	
-	delay(500);
-	digitalWrite(RelayControl[1],HIGH);// NO1 and COM1 disconnected (LED off)
-	Serial << F(" RelayControl[2]") << RelayControl[1] << F(" Off\n");
-
-	digitalWrite(RelayControl[2],LOW);// NO1 and COM1 Connected (LED on) 
-	Serial << F(" RelayControl[2]") << RelayControl[2] << F(" On\n");	
-	delay(250);
-	digitalWrite(RelayControl[2],HIGH);// NO1 and COM1 disconnected (LED off)
-	Serial << F(" RelayControl[2]") << RelayControl[2] << F(" Off\n");
-
-	digitalWrite(RelayControl[3],LOW);// NO1 and COM1 Connected (LED on) 
-	Serial << F(" RelayControl[3]") << RelayControl[3] << F(" On\n");
-	delay(100);
-	digitalWrite(RelayControl[3],HIGH);// NO1 and COM1 disconnected (LED off)
-	Serial << F(" RelayControl[3]") << RelayControl[3] << F(" Off\n");
-}
-//******************************************************************************
 void Initialize()
 {
 int eeAddress = 0;
@@ -1310,12 +1269,13 @@ int i = 0;
 
 for (i=0;i< 8; i++)
 	{
+
 	myAlarms[i].myStatus = 0;
 	myAlarms[i].myTime = 1514764800 + i;
 	myAlarms[i].myModifier = 0;
 	myAlarms[i].myAction = 0;
 	EEPROM.put(eeAddress, myAlarms[i]);
-	eeAddress += 10;
+	eeAddress+= 10;
 	}
 for (i=0;i< 8; i++)
 	{
@@ -1346,7 +1306,7 @@ for (i=0;i< 8; i++)
 	{
 	myTimersOffCtd[i].mySw = 0;
 	myTimersOffCtd[i].myCountdown = 0;
-	EEPROM.put(eeAddress, myTimersOffCtd[i]);
+	EEPROM.put(eeAddress, myTimersOnCtd[i]);
 	eeAddress += 6;
 	}
 	EEPROM.put(eeAddress, "Ch");
