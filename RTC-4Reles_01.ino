@@ -109,6 +109,12 @@ t = now();
 if (t==0)
 	{
 	setSyncProvider(RTC.get);	 // We get the time of the RTC and initialize the time functions. Every 5 min the time is adjusted.
+//	RTC.set(1531161062);	//Set testing time 09 Jul 2018 18:31:02
+//	setTime(1531161062);
+//	RTC.set(1531133383);	//Set testing time 09 Jul 2018 10:49:43
+//	setTime(1531133383);	//Set testing time 09 Jul 2018 10:49:43
+//	setTime(1531223383);	//1531223383 datetime= 10 Jul 2018 11:49:43	
+//	RTC.set(1531223383);
 	outgage = 1;
 	}
 	else
@@ -283,11 +289,11 @@ for (i=0;i<8;i++)
 				myAlarms[i].myTime = myAlarms[i].myTime + 86400;
 				int eeAddress = i * 10;//Calculate the EEPROM addres of the alarm
 				EEPROM.put(eeAddress, myAlarms[i]);	//Put the updated alarm info
-				Serial << F("*******************************************\n");
+				Serial << F("\n");
 				Serial << F("Alarm ") << i << F(" raised...\n");
 				Serial << F("t=") << t << F("...\n");
 				SleepTimeNow();
-				Serial << F("\n*******************************************\n");
+				Serial << F("\n");
 				}
 			else
 				{CheckWakeUp();}
@@ -395,9 +401,9 @@ for (i=0;i<30;i++) //Check for holyday.
 		if (sleepSW == 0)
 			{
 			printDateTime(ht);
-			Serial << F("\n*******************************************\n");
+			Serial << F("\n");
 			Serial << F("Today is an scheduled holyday, going to sleep...\n");
-			Serial << F("\n*******************************************\n");			
+			Serial << F("\n");
 			}
 		holyday = true;
 		if (holydays[i].hCyclic == 0) //One timer
@@ -523,15 +529,11 @@ else
  SetOnTimer and SetOffTimer are better used in pairs so you can contro better start and stop times of the relays
  Usage; "SetOnTimer 1 00:45:00 1 1"	"SetOffTimer 1 00:10:00 1 1" Will turn on Relay 1 45 minutes, and turn it off 10 until you change the commands or Sleep is issued.
 
- SetRTCAlarm will issue an alarm at the date given.
-
  SetTime year/month/day hour:minute:second
  SetAlarm number hour:minute:second randomeventswitch actions
  SetOnTimer number hours:minutes:seconds repeatable relay
  SetOffTimer number hours:minutes:seconds repeatable relay
- SetRTCAlarm number year/month/day hour:minute:second
- SetRTCAlarm number year/month/day hour:minute:second
-	
+ 
  SetAlarm number hour:minute:second randomeventswitch actions
  SetOnTimer number hours:minutes:seconds repeatable relay
  SetOffTimer number hours:minutes:seconds repeatable relay
@@ -615,7 +617,7 @@ if (myCommand.lastIndexOf("SetTime") >= 0) // SetTime 2018/05/28 00:00:01
 	t = makeTime(tm);
 	RTC.set(t);        // use the time_t value to ensure correct mweekday is set
 	setTime(t);
-	Serial << F("RTC Time Set to ");
+	Serial << F("RTC Time Set to int= ") << t <<  F(" datetime= ");
 	printDateTime(t);
 	Serial << F("\n");
 	foundCommand = 1;	
@@ -640,12 +642,11 @@ if (myCommand.lastIndexOf("SetOnTimer") >= 0) // SetOnTimer [0]-number [1]-hours
 	eeAddress = argument[0] * 10;//Calculate the EEPROM addres of the alarm
 	eeAddress = eeAddress + 80;	//Add displacement
 	EEPROM.put(eeAddress, myTimersOn[argument[0]]);	//Put the updated alarm info
-	Serial << F("\n*******************************************\n");
-	Serial << F(" Timer On ") << argument[0] << F(" Set to ");
+	Serial << F("\n Timer On ") << argument[0] << F(" Set to ");
 	printTime(myTimersOn[argument[0]].myTime);
 	Serial << F(" Active=") << myTimersOn[argument[0]].myStatus << F(" Relay=") << myTimersOn[argument[0]].myAction << F(" Repeatable=") << myTimersOn[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetTimersOn(0);
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetOffTimer 1 00:00:33 1 2
@@ -669,12 +670,11 @@ if (myCommand.lastIndexOf("SetOffTimer") >= 0) // SetOfTimer [0]-number [1]-hour
 	eeAddress = eeAddress + 160;	//Add displacement
 	EEPROM.put(eeAddress, myTimersOff[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");	
-	Serial << F(" Timer Off ") << argument[0] << F(" Set to ");
+	Serial << F("\n Timer Off ") << argument[0] << F(" Set to ");
 	printTime(myTimersOff[argument[0]].myTime);
 	Serial << F(" Active=") << myTimersOff[argument[0]].myStatus << F(" Relay=") << myTimersOff[argument[0]].myAction << F(" Repeatable=") << myTimersOff[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetTimersOff();
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetAlarm 7 00:20:23 0 1
@@ -699,12 +699,11 @@ if (myCommand.lastIndexOf("SetAlarm") >= 0) // SetAlarm[0]-number [1]-hours:[2]-
 	eeAddress = eeAddress + 0;	//Add displacement
 	EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");	
-	Serial << F(" Alarm ") << argument[0] << F(" Set to ");
+	Serial << F("\n Alarm ") << argument[0] << F(" Set to ");
 	printTime(myAlarms[argument[0]].myTime);
 	Serial << F(" Active=") << myAlarms[argument[0]].myStatus << F(" On Timer=") << myAlarms[argument[0]].myAction << F(" Random=") << myAlarms[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetAlarms(1);
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetAlDate 7 2018/06/09
@@ -726,12 +725,11 @@ if (myCommand.lastIndexOf("SetAlDate") >= 0) // SetAlDate [0]-number [1]-Year/[2
 	eeAddress = eeAddress + 0;	//Add displacement
 	EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");	
-	Serial << F(" Alarm date ") << argument[0] << F(" Set to ");
+	Serial << F("\n Alarm date ") << argument[0] << F(" Set to ");
 	printDateTime(myAlarms[argument[0]].myTime);
 	Serial << F(" Active=") << myAlarms[argument[0]].myStatus << F(" On Timer=") << myAlarms[argument[0]].myAction << F(" Random=") << myAlarms[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetAlarms(1);
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //ActTimer 1 1
@@ -748,11 +746,10 @@ if (myCommand.lastIndexOf("ActTimer") >= 0) // ActTimer 1 1 [0]-number [1]-boole
 	eeAddress = eeAddress + 80;	//Add displacement
 	EEPROM.put(eeAddress, myTimersOn[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");
-	Serial << " Timer " << argument[0] << " Set to ";
+	Serial << "\n Timer " << argument[0] << " Set to ";
 	printTime(myTimersOn[argument[0]].myTime);
 	Serial << " Active=" << myTimersOn[argument[0]].myStatus << " On Timer=" << myTimersOn[argument[0]].myAction << " Random=" << myTimersOn[argument[0]].myModifier << " Saved on EEPROM address " << eeAddress << "\n";
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //ActTimerOff 1 0
@@ -769,12 +766,11 @@ if (myCommand.lastIndexOf("ActTimerOff") >= 0) // ActTimerOff 1 1 [0]-number [1]
 	eeAddress = eeAddress + 160;	//Add displacement
 	EEPROM.put(eeAddress, myTimersOff[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");	
-	Serial << F(" Timer Off ") << argument[0] << F(" Set to ");
+	Serial << F("\n Timer Off ") << argument[0] << F(" Set to ");
 	printTime(myTimersOff[argument[0]].myTime);
 	Serial << F(" Active=") << myTimersOff[argument[0]].myStatus << F(" On Timer=") << myTimersOff[argument[0]].myAction << F(" Random=") << myTimersOff[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetTimersOff();
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}	
 //ActAlarm 7 1
@@ -791,12 +787,11 @@ if (myCommand.lastIndexOf("ActAlarm") >= 0) // ActAlarm 1 1 [0]-number [1]-boole
 	eeAddress = eeAddress + 0;	//Add displacement
 	EEPROM.put(eeAddress, myAlarms[argument[0]]);	//Put the updated alarm info
 	delay(10);
-	Serial << F("\n*******************************************\n");
-	Serial << F(" Alarm ") << argument[0] << F(" Set to ");
+	Serial << F("\n Alarm ") << argument[0] << F(" Set to ");
 	printTime(myAlarms[argument[0]].myTime);
 	Serial << F(" Active=") << myAlarms[argument[0]].myStatus << F(" On Timer=") << myAlarms[argument[0]].myAction << F(" Random=") << myAlarms[argument[0]].myModifier << F(" Saved on EEPROM address ") << eeAddress << F("\n");
 	GetAlarms(1);
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //ActRelay 1 1 
@@ -809,15 +804,14 @@ if (myCommand.lastIndexOf("ActRelay") >= 0) // SetOfTimer [0]-number [1]-hours:[
 			i++;
 		}
 	digitalWrite(RelayControl[argument[0]],argument[1]);// NO1 and COM1 Connected (LED on) 
-	Serial << F("\n*******************************************\n");	
-	Serial << F(" RelayControl[") << i << F("] Pin ") << RelayControl[argument[0]] << F("  Changed to ") << argument[1] << F("\n");
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n RelayControl[") << i << F("] Pin ") << RelayControl[argument[0]] << F("  Changed to ") << argument[1] << F("\n");
+	Serial << F("\n");	
 	foundCommand = 1;	
 	}
 //DisplayAlarms 0
 if (myCommand.lastIndexOf("DisplayAlarms") >= 0) // DisplayAlarms [0]-alarm number
 	{
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");
 	command = strtok (NULL, " :/");
 	if (isDigit(command[0]))
 		{
@@ -840,7 +834,7 @@ if (myCommand.lastIndexOf("DisplayAlarms") >= 0) // DisplayAlarms [0]-alarm numb
 		Serial << F("           =-=-=-=-=-=-=-=-=               \n");
 		GetTimersWeekdayOffs();
 		}
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");
 	if (guimode == 1)
 		{
 		for (i=0;i< 8; i++)
@@ -861,15 +855,23 @@ if (myCommand.lastIndexOf("DisplayAlarms") >= 0) // DisplayAlarms [0]-alarm numb
 			Serial << ((hour(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << hour(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((minute(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << minute(myTimersOn[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((second(myTimersOn[myAlarms[i].myAction].myTime)<10) ? "0" : "") << second(myTimersOn[myAlarms[i].myAction].myTime) << F("-");
-			Serial << myTimersOn[myAlarms[i].myAction].myStatus << F(";") << myTimersOn[myAlarms[i].myAction].myAction << F(";") << myTimersOn[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
-
+if(myAlarms[i].myAction < 88)
+{
+Serial << myTimersOn[myAlarms[i].myAction].myStatus << F(";") << myTimersOn[myAlarms[i].myAction].myAction << F(";") << myTimersOn[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
+}
+else{Serial << F("0;0;0-");}
 			Serial << year(myTimersOff[myAlarms[i].myAction].myTime) << F(";"); //Timer OFF date
 			Serial << ((month(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << month(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((day(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << day(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((hour(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << hour(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((minute(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << minute(myTimersOff[myAlarms[i].myAction].myTime) << F(";");
 			Serial << ((second(myTimersOff[myAlarms[i].myAction].myTime)<10) ? "0" : "") << second(myTimersOff[myAlarms[i].myAction].myTime) << F("-");
-			Serial << myTimersOff[myAlarms[i].myAction].myStatus << F(";") << myTimersOff[myAlarms[i].myAction].myAction << F(";") << myTimersOff[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
+if(myAlarms[i].myAction < 88)
+{
+Serial << myTimersOff[myAlarms[i].myAction].myStatus << F(";") << myTimersOff[myAlarms[i].myAction].myAction << F(";") << myTimersOff[myAlarms[i].myAction].myModifier << F("-"); //Timer data, active, relay, repeats
+}
+else{Serial << F("0;0;0-");}
+			
 			Serial << weekDayOff[i] << F("-\n");
 			}
 		}
@@ -884,11 +886,11 @@ if (myCommand.lastIndexOf("ResetAllTheAlarmsNow") >= 0) // ResetAllTheAlarmsNow
 			argument[i] = atoi(command);
 			i++;
 		}
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	Serial << F("Initializing All alarms\n");
 	Initialize();
 	Serial << F("Done initializing\n");	
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetWeekdayOff 0 L 1
@@ -918,7 +920,7 @@ if (myCommand.lastIndexOf("SetWeekdayOff") >= 0) // SetWeekdayOff [0]-alarm [1]-
 		}
 	int eeAddress = argument[0] + 338;
 	EEPROM.put(eeAddress, weekDayOff[argument[0]]);
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	Serial << F("Weekly Dayoffs for alarm") << argument[0] << F(" are set to ");
 	j = 0;
 	for (byte mask = 128; mask; mask >>= 1)
@@ -926,7 +928,7 @@ if (myCommand.lastIndexOf("SetWeekdayOff") >= 0) // SetWeekdayOff [0]-alarm [1]-
 		Serial.print(mask&weekDayOff[argument[0]]?mweekday[j]:'_');
 		j++;
 		}
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetHolyday 0 01/01/18 1
@@ -950,9 +952,9 @@ if (myCommand.lastIndexOf("SetHolyday") >= 0) // SetHolyday [0]-holyday index [0
 //DisplayHolydays
 if (myCommand.lastIndexOf("DisplayHolydays") >= 0) // DisplayHolydays
 	{
-	Serial << F("\n*******************************************\n");		
+	Serial << F("\n");	
 	GetHolydays();
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //Verbosity 1
@@ -967,9 +969,9 @@ if (myCommand.lastIndexOf("Verbosity") >= 0) // Verbosity 1 [0]-boolean
 	mVerbosity = (byte)argument[0];
 	EEPROM.put(471, mVerbosity);
 	delay(10);
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	Serial << F(" Verbosity is set to ") << argument[0] << F("\n");
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //Sleep 1
@@ -984,18 +986,18 @@ if (myCommand.lastIndexOf("Sleep") >= 0) // Sleep 1 [0]-boolean
 	mSleeptime = (byte)argument[0];
 	EEPROM.put(472, mSleeptime);
 	delay(10);
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	Serial << F(" Sleep is set to ") << argument[0] << F("\n");
 	if(mSleeptime == 1){Serial << F("Feeling Sleepy, zzz.... \n");SleepTimeNow();}
 	else{Serial << F("Waking up... \n");sleepSW = 0;CheckWakeUp();}
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	foundCommand = 1;
 	}
 //SetData n aaaa;mm;dd;hh;mm;ss;hh;mm;ss;hh;mm;ss;n;n;nn;n;aaaa;mm;dd;hh;mm;ss;hh;mm;ss;hh;mm;ss;n;n;nn;nnn
 //SetData 7 2018;12;31;00;00;17;00;00;17;00;00;17;1;7;7;6;208
 if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void RTC4RlaysFBDialog::btnSetAlarms( wxCommandEvent& event )" function
 	{
-	Serial << F("\n*******************************************\n");		
+	Serial << F("\n");	
 	while (command != NULL)
 		{
 			command = strtok (NULL, " ;");
@@ -1039,7 +1041,7 @@ if (myCommand.lastIndexOf("SetData") >= 0) // GUI command, see RTC4RlaysFB "void
 		EEPROM.put(eeAddress, weekDayOff[argument[0]]);
 		delay(10);
 		Serial << F("Data for alarm ") << argument[0] << F(" wrote\n");
-		Serial << F("\n*******************************************\n");		
+	Serial << F("\n");	
 		foundCommand = 1;
 	}
 
@@ -1067,9 +1069,9 @@ if (myCommand.lastIndexOf("DisplayGUIInfos") >= 0) // DisplayGUIInfos 0  - Displ
 //No Command
 if (foundCommand == 0 && command)
 	{
-	Serial << F("\n*******************************************\n");
+	Serial << F("\n");	
 	Serial << F("Warning ") << command << F(" is not a valid command\n");
-	Serial << F("\n*******************************************\n");	
+	Serial << F("\n");	
 	}
 }
 //******************************************************************************
@@ -1166,6 +1168,7 @@ tmElements_t tm, tm_alarm;
 int i=0;
 int j=0;
 int myIndexes[8] = {0,1,2,3,4,5,6,7};
+int eeAddress = 0;
 EEPROM.get(472, mSleeptime);
 	t = now();	//Prepare a date to inject temporary structure
 	tm.Month = int(month(t));  tm.Day = int(day(t)); tm.Year = int(year(t)) - 1970;
@@ -1196,6 +1199,27 @@ EEPROM.get(472, mSleeptime);
 				}
 			}
 		}
+	for(i=0;i < 8; i++)
+		{	
+		if (int(day(myAlarms[i].myTime)) < int(day(now())))
+			{
+			if (myTempStruct[myIndexes[i]].myTime < now())
+				{
+				tm_alarm.Day = int(day(now())) + 1;
+				}
+			else
+				{
+				tm_alarm.Day = int(day(now()));
+				}				
+			tm_alarm.Month = int(month(now())); tm_alarm.Year = int(year(now())) - 1970;								
+			tm_alarm.Hour = int(hour(myAlarms[i].myTime)); tm_alarm.Minute = int(minute(myAlarms[i].myTime)); tm_alarm.Second = int(second(myAlarms[i].myTime));	
+			t = makeTime(tm_alarm);
+			myAlarms[i].myTime = t;
+			EEPROM.put(eeAddress, myAlarms[i]);
+			eeAddress += 10;
+			delay(10);
+			}
+		}
 	i=7;
 	while (i>=0) //Fire the alarms since last wake up time if their timer is repeatable.
 		{
@@ -1212,9 +1236,6 @@ EEPROM.get(472, mSleeptime);
 				Serial << F("Found Alarm: ") << myIndexes[i] <<  F(" Active: ") << myAlarms[myIndexes[i]].myStatus << F(" ");
 				printDateTime(myAlarms[myIndexes[i]].myTime);
 				if (myAlarms[myIndexes[i]].myStatus == 1 && myTimersOn[myAlarms[myIndexes[i]].myAction].myModifier >= 1)
-//myAlarms[i].myTime
-//tm.Month = int(now());  tm.Day = int(now()); tm.Year = int(now());					
-//tm.Hour = int(hour(now())); tm.Minute = int(minute(now())); tm.Second = int(second(now()));					
 					{
 					if ((weekDayOff[i] & (128 >> (weekday(now()) - 1)))?true:false)//Has this alarm a dayOff?
 						{
