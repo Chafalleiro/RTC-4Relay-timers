@@ -1,0 +1,44 @@
+SetAlarm 0 15:20:23 0 0
+SetAlarm 1 15:20:23 0 1
+SetAlarm 2 15:50:23 0 88
+SetAlarm 3 15:50:23 0 99
+SetAlarm 4 15:51:23 0 2
+SetAlarm 5 15:55:23 0 3
+SetAlarm 6 15:57:23 0 88
+SetAlarm 7 15:57:23 0 99
+
+SetOnTimer 0 00:00:12 1 0
+SetOnTimer 1 00:00:12 1 1
+SetOnTimer 2 00:00:12 1 2
+SetOnTimer 3 00:00:12 1 3
+SetOnTimer 4 00:00:12 1 4
+SetOnTimer 5 00:00:12 1 5
+SetOnTimer 6 00:00:12 1 6
+SetOnTimer 7 00:00:12 1 7
+
+SetOffTimer 0 00:00:10 0 0
+SetOffTimer 1 00:00:11 0 1
+SetOffTimer 2 00:00:12 0 2
+SetOffTimer 3 00:00:13 0 3
+SetOffTimer 4 00:00:14 0 4
+SetOffTimer 5 00:00:15 0 5
+SetOffTimer 6 00:00:16 0 6
+SetOffTimer 7 00:00:17 0 7
+
+ActAlarm 0 1
+ActAlarm 1 1
+ActAlarm 2 1
+ActAlarm 3 1
+ActAlarm 4 1
+ActAlarm 5 1
+ActAlarm 6 1
+ActAlarm 7 1
+
+ActTimer 0 1
+ActTimer 1 1
+ActTimer 2 1
+ActTimer 3 1
+ActTimer 4 1
+ActTimer 5 1
+ActTimer 6 1
+ActTimer 7 1
